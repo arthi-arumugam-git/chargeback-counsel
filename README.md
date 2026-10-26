@@ -16,6 +16,7 @@ human-approval gate, and 10 synthetic disputes. Next: Airwallex sandbox API tool
 python3 -m counsel.seed   # writes data/disputes.json
 python3 -m counsel.queue  # ranked triage queue: P(win), expected value, contest/accept
 python3 -m counsel.deadlines --today 2026-11-01  # contest-worthy disputes near or past evidence due date
+python3 -m counsel.brief --today 2026-11-08 --out data/brief_late.md  # end-to-end merchant brief (deadlines first, approval-gated)
 WEBHOOK_SECRET=dev python3 -m counsel.webhook --port 8085  # signed dispute webhook receiver
 python3 -m pytest -q
 ```

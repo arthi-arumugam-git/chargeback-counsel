@@ -25,3 +25,13 @@ def test_brief_leads_with_deadlines():
     assert "## Evidence deadlines" in text
     assert text.index("## Evidence deadlines") < text.index("## Triage queue")
     assert "## Evidence deadlines" not in build_brief(SEED, today="x")
+
+
+def test_cli_today_flag_shows_urgent(tmp_path, capsys):
+    from counsel.brief import main
+    out = tmp_path / "b.md"
+    main(["--today", "2026-11-08", "--out", str(out)])
+    text = out.read_text()
+    assert "# Chargeback Counsel brief (2026-11-08)" in text
+    assert "## Evidence deadlines" in text
+    assert "urgent" in text or "missed" in text

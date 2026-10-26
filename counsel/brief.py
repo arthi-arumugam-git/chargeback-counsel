@@ -1,7 +1,7 @@
 """One-shot merchant brief: triage queue, per-currency recovery, evidence gaps, and draft rebuttals.
 
 This is the end-to-end demo view. Nothing is submitted: every contest item stays pending merchant approval.
-Run: python3 -m counsel.brief [--fee 15] [--drafts 3] [--out brief.md]
+Run: python3 -m counsel.brief [--fee 15] [--drafts 3] [--today YYYY-MM-DD] [--out brief.md]
 """
 from __future__ import annotations
 import argparse
@@ -49,9 +49,10 @@ def main(argv=None) -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--fee", type=float, default=DEFAULT_FEE)
     ap.add_argument("--drafts", type=int, default=3)
+    ap.add_argument("--today", help="ISO date to evaluate deadlines against (default: today)")
     ap.add_argument("--out")
     a = ap.parse_args(argv)
-    text = build_brief(SEED, a.fee, a.drafts)
+    text = build_brief(SEED, a.fee, a.drafts, today=a.today)
     if a.out:
         with open(a.out, "w") as f:
             f.write(text)
