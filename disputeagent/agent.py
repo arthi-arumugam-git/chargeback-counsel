@@ -1,6 +1,7 @@
 """Dispute Response Agent: triage -> gather evidence (tools) -> score win-probability -> decide fight/accept -> draft packet -> policy gate -> submit."""
 import json, os, sys
-from . import mock_airwallex as api
+from .airwallex_client import get_api
+api = get_api()  # AIRWALLEX_MODE=mock|sandbox
 AUTO_LIMIT = float(os.environ.get("AUTO_SUBMIT_LIMIT", "500"))  # human approval above this
 
 def gather(d):
