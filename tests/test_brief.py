@@ -18,3 +18,10 @@ def test_brief_draft_limit():
     text = build_brief(SEED, drafts=1, today="x")
     assert text.count("\n### ") == min(1, len(contest))
     assert "## Draft rebuttals" not in build_brief(SEED, drafts=0, today="x")
+
+
+def test_brief_leads_with_deadlines():
+    text = build_brief(SEED, today="2026-10-27")
+    assert "## Evidence deadlines" in text
+    assert text.index("## Evidence deadlines") < text.index("## Triage queue")
+    assert "## Evidence deadlines" not in build_brief(SEED, today="x")

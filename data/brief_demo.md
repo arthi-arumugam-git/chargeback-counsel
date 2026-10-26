@@ -2,6 +2,18 @@
 
 10 open disputes, 5 recommended to contest. Nothing has been submitted; each contest needs merchant approval.
 
+## Evidence deadlines
+
+| Dispute | Days left | Level | Amount |
+|---|---|---|---|
+| dsp_001 | 14 | ok | 129.00 USD |
+| dsp_003 | 16 | ok | 220.00 AUD |
+| dsp_005 | 17 | ok | 310.00 GBP |
+| dsp_007 | 18 | ok | 99.00 USD |
+| dsp_009 | 19 | ok | 19.00 SGD |
+
+0 urgent and 0 missed contest-worthy disputes need merchant approval.
+
 ## Triage queue
 
 | Dispute | Reason | Amount | Due | P(win) | EV | Action |

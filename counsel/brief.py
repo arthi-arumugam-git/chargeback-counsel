@@ -12,6 +12,16 @@ from .queue import DEFAULT_FEE, build_queue, render as render_queue
 from .metrics import summarize, render as render_metrics
 from .gaps import report as gaps_report
 from .playbooks import draft_rebuttal
+from .deadlines import alerts as deadline_alerts, render as render_deadlines
+
+
+def _deadline_section(disputes: list[Dispute], today: str, fee: float) -> list[str]:
+    """Evidence-deadline alerts go first: a missed deadline is an automatic loss."""
+    try:
+        day = date.fromisoformat(today)
+    except ValueError:
+        return []
+    return ["## Evidence deadlines", "", render_deadlines(deadline_alerts(disputes, day, fee=fee)), ""]
 
 
 def build_brief(disputes: list[Dispute], fee: float = DEFAULT_FEE, drafts: int = 3,
@@ -22,6 +32,7 @@ def build_brief(disputes: list[Dispute], fee: float = DEFAULT_FEE, drafts: int =
     out = [f"# Chargeback Counsel brief ({today})", "",
            f"{len(disputes)} open disputes, {len(contest)} recommended to contest. "
            "Nothing has been submitted; each contest needs merchant approval.", "",
+           *_deadline_section(disputes, today, fee),
            "## Triage queue", "", render_queue(items), "",
            "## Expected recovery by currency", "", render_metrics(summarize(disputes, fee)), "",
            "## Evidence that would most help", "", gaps_report(disputes), ""]
