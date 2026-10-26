@@ -14,5 +14,6 @@ human-approval gate, and 10 synthetic disputes. Next: Airwallex sandbox API tool
 
 ```
 python3 -m counsel.seed   # writes data/disputes.json
+python3 -m counsel.queue  # ranked triage queue: P(win), expected value, contest/accept
 python3 -m pytest -q
 ```
