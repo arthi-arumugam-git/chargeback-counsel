@@ -9,8 +9,10 @@ An approval-gated agent that handles card disputes for SMB merchants on Airwalle
 against reason-code playbooks, drafts an evidence-backed rebuttal, and never submits without the merchant's approval.
 Built for the Airwallex Agentic Banking Hackathon (2026).
 
-Status (day 0 scaffold): dispute model, five reason-code playbooks with win-likelihood scoring, rebuttal drafter,
-human-approval gate, and 10 synthetic disputes. Next: Airwallex sandbox API tools, webhook ingestion, dashboard.
+Status (Oct 27 2026): dispute model, five reason-code playbooks with win-likelihood scoring, rebuttal drafter,
+human-approval gate, 10 synthetic disputes, signed webhook ingestion, ranked EV triage queue, evidence-deadline alerts,
+evidence-gap checks, per-currency recovery metrics, end-to-end merchant brief, and a static HTML dashboard.
+Next: live Airwallex sandbox calls (build window opened Oct 27) and the demo video.
 
 ```
 python3 -m counsel.seed   # writes data/disputes.json
