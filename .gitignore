@@ -1,9 +1,9 @@
+*.key
+*.pyc
+.DS_Store
 .env
 .env.*
-*.key
-__pycache__/
-*.pyc
 .pytest_cache/
 .venv/
+__pycache__/
 venv/
-.DS_Store

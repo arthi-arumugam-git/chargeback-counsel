@@ -1,0 +1,216 @@
+[
+  {
+    "id": "dsp_001",
+    "payment_intent_id": "int_001",
+    "amount": 129.0,
+    "currency": "USD",
+    "reason": "fraud",
+    "evidence": {
+      "avs_match": true,
+      "cvv_match": false,
+      "three_ds": true,
+      "tracking_delivered": false,
+      "signature": false,
+      "customer_comms": [],
+      "refund_issued": false,
+      "second_charge_distinct": false,
+      "cancel_before_charge": false,
+      "terms_accepted": false,
+      "product_matches_listing": false
+    },
+    "due_date": "2026-11-10"
+  },
+  {
+    "id": "dsp_002",
+    "payment_intent_id": "int_002",
+    "amount": 54.5,
+    "currency": "USD",
+    "reason": "fraud",
+    "evidence": {
+      "avs_match": false,
+      "cvv_match": true,
+      "three_ds": false,
+      "tracking_delivered": false,
+      "signature": false,
+      "customer_comms": [],
+      "refund_issued": false,
+      "second_charge_distinct": false,
+      "cancel_before_charge": false,
+      "terms_accepted": false,
+      "product_matches_listing": false
+    },
+    "due_date": "2026-11-11"
+  },
+  {
+    "id": "dsp_003",
+    "payment_intent_id": "int_003",
+    "amount": 220.0,
+    "currency": "AUD",
+    "reason": "product_not_received",
+    "evidence": {
+      "avs_match": false,
+      "cvv_match": false,
+      "three_ds": false,
+      "tracking_delivered": true,
+      "signature": true,
+      "customer_comms": [],
+      "refund_issued": false,
+      "second_charge_distinct": false,
+      "cancel_before_charge": false,
+      "terms_accepted": false,
+      "product_matches_listing": false
+    },
+    "due_date": "2026-11-12"
+  },
+  {
+    "id": "dsp_004",
+    "payment_intent_id": "int_004",
+    "amount": 75.0,
+    "currency": "AUD",
+    "reason": "product_not_received",
+    "evidence": {
+      "avs_match": false,
+      "cvv_match": false,
+      "three_ds": false,
+      "tracking_delivered": false,
+      "signature": false,
+      "customer_comms": [],
+      "refund_issued": false,
+      "second_charge_distinct": false,
+      "cancel_before_charge": false,
+      "terms_accepted": false,
+      "product_matches_listing": false
+    },
+    "due_date": "2026-11-12"
+  },
+  {
+    "id": "dsp_005",
+    "payment_intent_id": "int_005",
+    "amount": 310.0,
+    "currency": "GBP",
+    "reason": "not_as_described",
+    "evidence": {
+      "avs_match": false,
+      "cvv_match": false,
+      "three_ds": false,
+      "tracking_delivered": false,
+      "signature": false,
+      "customer_comms": [
+        "Offered return"
+      ],
+      "refund_issued": false,
+      "second_charge_distinct": false,
+      "cancel_before_charge": false,
+      "terms_accepted": false,
+      "product_matches_listing": true
+    },
+    "due_date": "2026-11-13"
+  },
+  {
+    "id": "dsp_006",
+    "payment_intent_id": "int_006",
+    "amount": 42.0,
+    "currency": "GBP",
+    "reason": "not_as_described",
+    "evidence": {
+      "avs_match": false,
+      "cvv_match": false,
+      "three_ds": false,
+      "tracking_delivered": false,
+      "signature": false,
+      "customer_comms": [],
+      "refund_issued": false,
+      "second_charge_distinct": false,
+      "cancel_before_charge": false,
+      "terms_accepted": true,
+      "product_matches_listing": false
+    },
+    "due_date": "2026-11-13"
+  },
+  {
+    "id": "dsp_007",
+    "payment_intent_id": "int_007",
+    "amount": 99.0,
+    "currency": "USD",
+    "reason": "duplicate",
+    "evidence": {
+      "avs_match": false,
+      "cvv_match": false,
+      "three_ds": false,
+      "tracking_delivered": false,
+      "signature": false,
+      "customer_comms": [],
+      "refund_issued": false,
+      "second_charge_distinct": true,
+      "cancel_before_charge": false,
+      "terms_accepted": false,
+      "product_matches_listing": false
+    },
+    "due_date": "2026-11-14"
+  },
+  {
+    "id": "dsp_008",
+    "payment_intent_id": "int_008",
+    "amount": 99.0,
+    "currency": "USD",
+    "reason": "duplicate",
+    "evidence": {
+      "avs_match": false,
+      "cvv_match": false,
+      "three_ds": false,
+      "tracking_delivered": false,
+      "signature": false,
+      "customer_comms": [],
+      "refund_issued": true,
+      "second_charge_distinct": false,
+      "cancel_before_charge": false,
+      "terms_accepted": false,
+      "product_matches_listing": false
+    },
+    "due_date": "2026-11-14"
+  },
+  {
+    "id": "dsp_009",
+    "payment_intent_id": "int_009",
+    "amount": 19.0,
+    "currency": "SGD",
+    "reason": "subscription_cancelled",
+    "evidence": {
+      "avs_match": false,
+      "cvv_match": false,
+      "three_ds": false,
+      "tracking_delivered": false,
+      "signature": false,
+      "customer_comms": [
+        "No cancel request"
+      ],
+      "refund_issued": false,
+      "second_charge_distinct": false,
+      "cancel_before_charge": false,
+      "terms_accepted": true,
+      "product_matches_listing": false
+    },
+    "due_date": "2026-11-15"
+  },
+  {
+    "id": "dsp_010",
+    "payment_intent_id": "int_010",
+    "amount": 19.0,
+    "currency": "SGD",
+    "reason": "subscription_cancelled",
+    "evidence": {
+      "avs_match": false,
+      "cvv_match": false,
+      "three_ds": false,
+      "tracking_delivered": false,
+      "signature": false,
+      "customer_comms": [],
+      "refund_issued": false,
+      "second_charge_distinct": false,
+      "cancel_before_charge": true,
+      "terms_accepted": true,
+      "product_matches_listing": false
+    },
+    "due_date": "2026-11-15"
+  }
+]
