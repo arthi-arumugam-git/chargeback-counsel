@@ -1,0 +1,64 @@
+<!doctype html><html><head><meta charset='utf-8'><title>Chargeback Counsel</title><style>body{font-family:system-ui,sans-serif;max-width:980px;margin:2rem auto;padding:0 1rem;color:#1b1b1b}h1{color:#612fff}h2{border-bottom:2px solid #eee;padding-bottom:.3rem}pre{background:#f6f6fb;padding:1rem;overflow:auto;border-radius:8px}.banner{background:#fff4e5;border-left:4px solid #ff8a00;padding:.6rem 1rem;margin:1rem 0}</style></head><body><div class="banner">Approval-gated: nothing is submitted to Airwallex until the merchant approves each contest.</div><h1>Chargeback Counsel brief (2026-11-08)</h1>
+<p>10 open disputes, 5 recommended to contest. Nothing has been submitted; each contest needs merchant approval.</p>
+<h2>Evidence deadlines</h2>
+<pre>| Dispute | Days left | Level | Amount |
+|---|---|---|---|
+| dsp_001 | 2 | urgent | 129.00 USD |
+| dsp_003 | 4 | ok | 220.00 AUD |
+| dsp_005 | 5 | ok | 310.00 GBP |
+| dsp_007 | 6 | ok | 99.00 USD |
+| dsp_009 | 7 | ok | 19.00 SGD |</pre>
+<p>1 urgent and 0 missed contest-worthy disputes need merchant approval.</p>
+<h2>Triage queue</h2>
+<pre>| Dispute | Reason | Amount | Due | P(win) | EV | Action |
+|---|---|---|---|---|---|---|
+| dsp_001 | fraud | 129.00 USD | 2026-11-10 | 0.65 | 68.85 | contest |
+| dsp_003 | product_not_received | 220.00 AUD | 2026-11-12 | 0.85 | 172.00 | contest |
+| dsp_005 | not_as_described | 310.00 GBP | 2026-11-13 | 0.80 | 233.00 | contest |
+| dsp_007 | duplicate | 99.00 USD | 2026-11-14 | 0.70 | 54.30 | contest |
+| dsp_009 | subscription_cancelled | 19.00 SGD | 2026-11-15 | 1.00 | 4.00 | contest |
+| dsp_002 | fraud | 54.50 USD | 2026-11-11 | 0.15 | -6.83 | accept |
+| dsp_004 | product_not_received | 75.00 AUD | 2026-11-12 | 0.00 | -15.00 | accept |
+| dsp_006 | not_as_described | 42.00 GBP | 2026-11-13 | 0.20 | -6.60 | accept |
+| dsp_008 | duplicate | 99.00 USD | 2026-11-14 | 0.30 | 14.70 | accept |
+| dsp_010 | subscription_cancelled | 19.00 SGD | 2026-11-15 | 0.00 | -15.00 | accept |</pre>
+<p>5 to contest (pending merchant approval), 5 to accept.</p>
+<h2>Expected recovery by currency</h2>
+<pre>| Currency | Disputes | Disputed | Contest | Contested amt | Expected net recovery |
+|---|---|---|---|---|---|
+| AUD | 2 | 295.00 | 1 (50%) | 220.00 | 172.00 |
+| GBP | 2 | 352.00 | 1 (50%) | 310.00 | 233.00 |
+| SGD | 2 | 38.00 | 1 (50%) | 19.00 | 4.00 |
+| USD | 4 | 381.50 | 2 (50%) | 228.00 | 123.15 |</pre>
+<h2>Evidence that would most help</h2>
+<pre>| dispute | reason | win now | top missing evidence | gain | flips to contest |
+|---|---|---|---|---|---|
+| dsp_001 | fraud | 0.65 | tracking_delivered | +0.20 | - |
+| dsp_002 | fraud | 0.15 | three_ds | +0.45 | three_ds |
+| dsp_003 | product_not_received | 0.85 | customer_comms | +0.15 | - |
+| dsp_004 | product_not_received | 0.00 | tracking_delivered | +0.60 | tracking_delivered |
+| dsp_005 | not_as_described | 0.80 | terms_accepted | +0.20 | - |
+| dsp_006 | not_as_described | 0.20 | product_matches_listing | +0.50 | product_matches_listing, customer_comms |
+| dsp_007 | duplicate | 0.70 | refund_issued | +0.30 | - |
+| dsp_008 | duplicate | 0.30 | second_charge_distinct | +0.70 | second_charge_distinct |
+| dsp_009 | subscription_cancelled | 1.00 | - | - | - |
+| dsp_010 | subscription_cancelled | 0.00 | - | - | - |</pre>
+<h2>Draft rebuttals (top by due date)</h2>
+<h3>dsp_001 (fraud, 129.00 USD)</h3>
+<p>Dispute dsp_001 (fraud) on int_001, 129.00 USD.</p>
+<p>The merchant contests this dispute for the following reasons:</p>
+<p>1. The payment was authenticated with 3-D Secure, shifting liability to the issuer.</p>
+<p>2. The billing address matched the cardholder&#x27;s address (AVS match).</p>
+<p>Supporting documents are attached. STATUS: DRAFT, awaiting merchant approval.</p>
+<h3>dsp_003 (product_not_received, 220.00 AUD)</h3>
+<p>Dispute dsp_003 (product_not_received) on int_003, 220.00 AUD.</p>
+<p>The merchant contests this dispute for the following reasons:</p>
+<p>1. Carrier tracking confirms delivery.</p>
+<p>2. Delivery was signed for.</p>
+<p>Supporting documents are attached. STATUS: DRAFT, awaiting merchant approval.</p>
+<h3>dsp_005 (not_as_described, 310.00 GBP)</h3>
+<p>Dispute dsp_005 (not_as_described) on int_005, 310.00 GBP.</p>
+<p>The merchant contests this dispute for the following reasons:</p>
+<p>1. The item shipped matches the product listing.</p>
+<p>2. The merchant offered a return or remedy in writing.</p>
+<p>Supporting documents are attached. STATUS: DRAFT, awaiting merchant approval.</p></body></html>
