@@ -1,8 +1,11 @@
 """Dispute webhook ingestion.
 
-Verifies an HMAC-SHA256 signature over (timestamp + raw body) with the webhook secret,
+Verifies an HMAC-SHA256 hex signature over (x-timestamp + raw body) with the webhook secret,
 rejects stale timestamps, de-duplicates by event id, and maps the payload to a Dispute.
-The payload field names are a mock shape; align them with the Airwallex sandbox docs on day 1.
+Header names, the millisecond x-timestamp, and the digest recipe match the Airwallex docs
+("Listen for webhook events", checked Oct 27 2026). Test events sent from the web app are signed
+with the secret in their `client-secret-key` header; pass allow_test_events=True to accept those.
+The data.object dispute field names are still a mock shape; align them with a real sandbox payload.
 
 Run a local receiver: WEBHOOK_SECRET=dev python3 -m counsel.webhook --port 8085
 """
@@ -49,8 +52,12 @@ def to_dispute(payload: dict) -> Dispute:
                    currency=d.get("currency", "USD"), reason=reason, evidence=ev, due_date=d["due_date"])
 
 
-def handle(secret: str, headers: dict, body: bytes, now: float | None = None) -> Dispute | None:
+def handle(secret: str, headers: dict, body: bytes, now: float | None = None,
+           allow_test_events: bool = False) -> Dispute | None:
     """Return the new Dispute, or None for duplicate or non-dispute events."""
+    headers = {k.lower(): v for k, v in headers.items()}
+    if allow_test_events and headers.get("client-secret-key"):
+        secret = headers["client-secret-key"]
     verify(secret, headers.get("x-timestamp", ""), headers.get("x-signature", ""), body, now)
     payload = json.loads(body)
     if payload.get("id") in _seen:
@@ -68,7 +75,8 @@ class _Handler(BaseHTTPRequestHandler):
         body = self.rfile.read(int(self.headers.get("content-length", 0)))
         hdrs = {k.lower(): v for k, v in self.headers.items()}
         try:
-            d = handle(os.environ["WEBHOOK_SECRET"], hdrs, body)
+            d = handle(os.environ["WEBHOOK_SECRET"], hdrs, body,
+                       allow_test_events=os.environ.get("WEBHOOK_ALLOW_TEST_EVENTS") == "1")
             self.send_response(200); self.end_headers()
             self.wfile.write(json.dumps({"queued": d.id if d else None}).encode())
         except (WebhookError, KeyError, ValueError) as e:

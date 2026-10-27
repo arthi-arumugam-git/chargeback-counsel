@@ -35,6 +35,6 @@ Needs an existing PaymentIntent id. Ask the agent (Grok Bot) to do this step wit
   - `get_payment()`: TODO map AVS/CVC/3DS from `latest_payment_attempt`.
   - `submit_evidence()`: TODO confirm `/challenge` body schema (docs: api/payments/payment_disputes).
 - `disputeagent/agent.py`: `api = get_api()` — only switch line.
-- `counsel/webhook.py`: `to_dispute()` + header names `x-timestamp`/`x-signature` are mock; align with Airwallex webhook docs.
+- `counsel/webhook.py`: headers/signature verified against Airwallex docs (Oct 27); test events via `WEBHOOK_ALLOW_TEST_EVENTS=1` (client-secret-key). `to_dispute()` field names still mock.
 - Endpoints: `POST /authentication/login`, `GET /pa/payment_disputes`, `GET /pa/payment_intents/{id}`,
   `POST /pa/payment_disputes/{id}/accept`, `POST /pa/payment_disputes/{id}/challenge`.
