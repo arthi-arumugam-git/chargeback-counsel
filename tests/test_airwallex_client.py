@@ -23,3 +23,21 @@ def test_sandbox_list_and_dry_run(monkeypatch):
     assert d[0]["id"] == "dst_1" and d[0]["due_by"] == "2026-11-08"
     assert c.accept_dispute("dst_1")["dry_run"] is True
     assert not any("/accept" in u for _, u, _ in calls)
+
+
+def test_auth_signals_maps_documented_fields():
+    from disputeagent.airwallex_client import SandboxClient
+    p = {"latest_payment_attempt": {"authentication_data": {
+        "avs_result": "pass", "cvc_result": "fail",
+        "ds_data": {"eci": "05", "liability_shift_indicator": "Y"},
+        "fraud_data": {"action": "ACCEPT", "score": "85"}}}}
+    s = SandboxClient._auth_signals(p)
+    assert s["avs"] == "match" and s["cvc"] == "mismatch" and s["3ds"] is True
+    assert s["fraud_action"] == "ACCEPT"
+
+
+def test_auth_signals_conservative_when_missing():
+    from disputeagent.airwallex_client import SandboxClient
+    s = SandboxClient._auth_signals({"latest_payment_attempt": {"authentication_data": {"ds_data": {}}}})
+    assert s["avs"] == "unknown" and s["cvc"] == "unknown" and s["3ds"] is False
+    assert SandboxClient._auth_signals({})["3ds"] is False

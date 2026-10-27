@@ -32,7 +32,7 @@ Needs an existing PaymentIntent id. Ask the agent (Grok Bot) to do this step wit
 ## Code plug points
 - `disputeagent/airwallex_client.py` -> `SandboxClient` (auth token cached 25 min; list/get/accept/challenge).
   - `_to_internal()`: map real dispute fields (verify `reason`, `status`, `due_at` names on first response).
-  - `get_payment()`: TODO map AVS/CVC/3DS from `latest_payment_attempt`.
+  - `get_payment()`: AVS/CVC/3DS + fraud_data mapped from `latest_payment_attempt.authentication_data` per Payment Attempt docs (Oct 27).
   - `submit_evidence()`: TODO confirm `/challenge` body schema (docs: api/payments/payment_disputes).
 - `disputeagent/agent.py`: `api = get_api()` — only switch line.
 - `counsel/webhook.py`: headers/signature verified against Airwallex docs (Oct 27); test events via `WEBHOOK_ALLOW_TEST_EVENTS=1` (client-secret-key). `to_dispute()` field names still mock.

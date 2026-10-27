@@ -46,10 +46,22 @@ class SandboxClient:
         r = self._req("GET", "/pa/payment_disputes?status=REQUIRES_RESPONSE")
         return [x for x in map(self._to_internal, r.get("items", [])) if x["status"] == "needs_response"]
 
+    @staticmethod
+    def _auth_signals(p):
+        """Map latest_payment_attempt.authentication_data (Airwallex Payment Attempt docs) to agent signals."""
+        att = p.get("latest_payment_attempt") or {}
+        a = att.get("authentication_data") or {}
+        norm = lambda v: {"pass": "match", "match": "match", "fail": "mismatch", "mismatch": "mismatch"}.get(str(v or "").lower(), "unknown")
+        ds = a.get("ds_data") or {}
+        three_ds = (ds.get("liability_shift_indicator") == "Y" or ds.get("pa_res_status") == "Y"
+                    or ds.get("eci") in ("02", "05"))
+        fraud = a.get("fraud_data") or {}
+        return {"avs": norm(a.get("avs_result")), "cvc": norm(a.get("cvc_result")), "3ds": bool(three_ds),
+                "fraud_action": fraud.get("action"), "fraud_score": fraud.get("score")}
+
     def get_payment(self, pid):
         p = self._req("GET", f"/pa/payment_intents/{pid}")
-        # TODO Oct 27: map AVS/CVC/3DS from latest_payment_attempt; defaults are conservative.
-        return {"id": pid, "customer": p.get("customer_id"), "avs": "unknown", "cvc": "unknown", "3ds": False,
+        return {"id": pid, "customer": p.get("customer_id"), **self._auth_signals(p),
                 "order": (p.get("order") or {}).get("id") or p.get("merchant_order_id"), "refunded": p.get("status") == "REFUNDED", "raw": p}
 
     def get_shipment(self, oid): return None          # no Airwallex source; wire your carrier/CRM later
