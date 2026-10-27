@@ -12,7 +12,9 @@ Built for the Airwallex Agentic Banking Hackathon (2026).
 Status (Oct 27 2026): dispute model, five reason-code playbooks with win-likelihood scoring, rebuttal drafter,
 human-approval gate, 10 synthetic disputes, signed webhook ingestion, ranked EV triage queue, evidence-deadline alerts,
 evidence-gap checks, per-currency recovery metrics, end-to-end merchant brief, and a static HTML dashboard.
-Next: live Airwallex sandbox calls (build window opened Oct 27) and the demo video.
+Demo video: `python3 scripts/make_demo_video.py` builds a narrated 92-second walkthrough at `data/demo/chargeback_counsel_demo.mp4`.
+
+Next: live Airwallex sandbox calls (build window opened Oct 27).
 
 ```
 python3 -m counsel.seed   # writes data/disputes.json
