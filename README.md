@@ -21,6 +21,7 @@ python3 -m counsel.seed   # writes data/disputes.json
 python3 -m counsel.queue  # ranked triage queue: P(win), expected value, contest/accept
 python3 -m counsel.deadlines --today 2026-11-01  # contest-worthy disputes near or past evidence due date
 python3 -m counsel.dashboard --today 2026-11-08  # static HTML dashboard -> data/dashboard.html
+python3 -m counsel.packet  # one approval-gated evidence packet per dispute -> data/packets/
 python3 -m counsel.brief --today 2026-11-08 --out data/brief_late.md  # end-to-end merchant brief (deadlines first, approval-gated)
 WEBHOOK_SECRET=dev python3 -m counsel.webhook --port 8085  # signed dispute webhook receiver
 python3 -m pytest -q
