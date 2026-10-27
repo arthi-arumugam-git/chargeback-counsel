@@ -1,0 +1,11 @@
+dispute_id,payment_intent_id,amount,currency,reason,due_date,recommendation,p_win,expected_value,evidence_missing,approved,submitted
+dsp_001,int_001,129.0,USD,fraud,2026-11-10,contest,0.65,68.85,tracking_delivered;cvv_match,False,False
+dsp_002,int_002,54.5,USD,fraud,2026-11-11,accept,0.15,-6.83,three_ds;avs_match;tracking_delivered,False,False
+dsp_003,int_003,220.0,AUD,product_not_received,2026-11-12,contest,0.85,172.0,customer_comms,False,False
+dsp_004,int_004,75.0,AUD,product_not_received,2026-11-12,accept,0.0,-15.0,tracking_delivered;signature;customer_comms,False,False
+dsp_005,int_005,310.0,GBP,not_as_described,2026-11-13,contest,0.8,233.0,terms_accepted,False,False
+dsp_006,int_006,42.0,GBP,not_as_described,2026-11-13,accept,0.2,-6.6,product_matches_listing;customer_comms,False,False
+dsp_007,int_007,99.0,USD,duplicate,2026-11-14,contest,0.7,54.3,refund_issued,False,False
+dsp_008,int_008,99.0,USD,duplicate,2026-11-14,accept,0.3,14.7,second_charge_distinct,False,False
+dsp_009,int_009,19.0,SGD,subscription_cancelled,2026-11-15,contest,1.0,4.0,,False,False
+dsp_010,int_010,19.0,SGD,subscription_cancelled,2026-11-15,accept,0.0,-15.0,,False,False
