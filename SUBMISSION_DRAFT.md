@@ -34,5 +34,5 @@ Small merchants lose disputes they could win because evidence is scattered, dead
 ## Remaining before submit
 1. Arthi adds Airwallex sandbox API keys (AIRWALLEX_WIRE.md step 1).
 2. Run live sandbox end to end; capture screenshots.
-3. Re-render demo video with live run; upload to YouTube (unlisted).
+3. Offline demo uploaded (Unlisted): https://youtu.be/ULEQ5x7_Qxk — re-render with live sandbox run once Airwallex keys arrive.
 4. Fill HackerEarth form from this draft.
