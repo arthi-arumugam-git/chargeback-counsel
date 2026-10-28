@@ -26,3 +26,24 @@ python3 -m counsel.brief --today 2026-11-08 --out data/brief_late.md  # end-to-e
 WEBHOOK_SECRET=dev python3 -m counsel.webhook --port 8085  # signed dispute webhook receiver
 python3 -m pytest -q
 ```
+
+## Architecture
+
+```mermaid
+flowchart LR
+    AW[Airwallex dispute webhook] -->|HMAC-signed, x-timestamp| WH[counsel.webhook<br/>verify, dedupe, map]
+    SB[Airwallex sandbox API<br/>disputeagent.airwallex_client] -.->|AIRWALLEX_MODE=sandbox| D
+    MK[Mock APIs<br/>disputeagent.mock_airwallex] -->|AIRWALLEX_MODE=mock| D
+    WH --> D[Dispute model<br/>counsel.models]
+    D --> PB[Reason-code playbooks<br/>counsel.playbooks]
+    PB --> Q[Triage queue: P win, EV<br/>counsel.queue]
+    Q --> DL[Deadline alerts<br/>counsel.deadlines]
+    Q --> GP[Evidence-gap advisor<br/>counsel.gaps]
+    Q --> PK[Evidence packet + draft rebuttal<br/>counsel.packet]
+    PK --> AP{Approval gate<br/>counsel.approval}
+    AP -->|merchant approves| SUB[Submit evidence to Airwallex]
+    AP -->|not approved| HOLD[Held, nothing sent]
+    Q --> OUT[Brief, dashboard, metrics, CSV<br/>counsel.brief / dashboard / metrics / export]
+```
+
+The sandbox path is dashed because live sandbox calls are still waiting on Airwallex sandbox API keys; every demo and test runs on the mock backend.
