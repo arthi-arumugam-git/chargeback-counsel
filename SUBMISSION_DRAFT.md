@@ -18,6 +18,7 @@ Small merchants lose disputes they could win because evidence is scattered, dead
 - Evidence-deadline alerts; per-currency recovery metrics (no FX mixing).
 - Per-dispute evidence packets (md/json) with an unsigned approval block; merchant brief; static HTML dashboard; CSV export.
 - Human-approval gate: no submission without explicit merchant sign-off.
+- Guardrail evals (`python -m counsel.evals`): exhaustive check of all 44 evidence combinations across the 5 reason codes; rebuttals cite only evidence on hand, win likelihood never drops when evidence is added, pre-charge cancellations always accept, and no submission reaches the client without approval. 0 failures.
 
 ## Airwallex APIs used
 - Disputes / payment attempts via sandbox client (live calls pending sandbox API keys).
