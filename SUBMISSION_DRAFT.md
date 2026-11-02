@@ -21,8 +21,11 @@ Small merchants lose disputes they could win because evidence is scattered, dead
 - Guardrail evals (`python -m counsel.evals`): exhaustive check of all 44 evidence combinations across the 5 reason codes; rebuttals cite only evidence on hand, win likelihood never drops when evidence is added, pre-charge cancellations always accept, and no submission reaches the client without approval. 0 failures.
 
 ## Airwallex APIs used
-- Disputes / payment attempts via sandbox client (live calls pending sandbox API keys).
+- Payment Disputes: challenge and accept request bodies built to the documented schema (request_id, reason enums, product_type, supporting_documents.documents); live calls pending sandbox API keys.
+- File Service (files.sandbox.airwallex.com /api/v1/files/upload): per-dispute evidence files from data/evidence/<dispute_id>/ are uploaded only after merchant approval, and the returned file_ids go into the challenge body; accepts send no files.
+- Payment attempts (AVS/CVC/3DS/fraud signals) via sandbox client.
 - Webhooks for dispute events.
+- Test suite: 60 tests pass (commit 7382a8a).
 
 ## Demo
 - 92s narrated walkthrough: data/demo/chargeback_counsel_demo.mp4 (to be uploaded; refresh after live sandbox run).
