@@ -33,7 +33,7 @@ Needs an existing PaymentIntent id. Ask the agent (Grok Bot) to do this step wit
 - `disputeagent/airwallex_client.py` -> `SandboxClient` (auth token cached 25 min; list/get/accept/challenge).
   - `_to_internal()`: map real dispute fields (verify `reason`, `status`, `due_at` names on first response).
   - `get_payment()`: AVS/CVC/3DS + fraud_data mapped from `latest_payment_attempt.authentication_data` per Payment Attempt docs (Oct 27).
-  - `submit_evidence()`: TODO confirm `/challenge` body schema (docs: api/payments/payment_disputes).
+  - `submit_evidence()` / `accept_dispute()`: bodies built per the challenge/accept API reference (`build_challenge_body()`: uuid4 `request_id`, enum-checked `reason`/`product_type`, narrative in `supporting_documents.documents[].description`). Evidence file upload (File Service) is not wired yet, so `file_ids` is empty unless the packet supplies them and a warning is logged; live challenges may be rejected until uploads are added. Not yet exercised against a live sandbox.
 - `disputeagent/agent.py`: `api = get_api()` — only switch line.
 - `counsel/webhook.py`: headers/signature verified against Airwallex docs (Oct 27); test events via `WEBHOOK_ALLOW_TEST_EVENTS=1` (client-secret-key). `to_dispute()` field names still mock.
 - Endpoints: `POST /authentication/login`, `GET /pa/payment_disputes`, `GET /pa/payment_intents/{id}`,

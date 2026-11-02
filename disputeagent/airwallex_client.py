@@ -6,7 +6,9 @@ AIRWALLEX_MODE=sandbox  -> SandboxClient below (needs AIRWALLEX_CLIENT_ID / AIRW
 PLUG POINT: SandboxClient methods. Endpoints from airwallex.com/docs/api/payments/payment_disputes.
 Field mapping (_to_internal) is a best guess: verify against a real sandbox response on Oct 27.
 """
-import json, os, time, urllib.request
+import json, logging, os, time, urllib.request, uuid
+
+log = logging.getLogger(__name__)
 
 BASE = os.environ.get("AIRWALLEX_BASE_URL", "https://api-demo.airwallex.com/api/v1")
 
@@ -69,14 +71,89 @@ class SandboxClient:
 
     def _write(self, path, body):
         if self.dry_run:
-            print(json.dumps({"DRY_RUN": path, "body_keys": list(body)})); return {"ok": True, "dry_run": True}
+            print(json.dumps({"DRY_RUN": path, "body_keys": list(body)})); return {"ok": True, "dry_run": True, "body": body}
         return self._req("POST", path, body)
 
-    def submit_evidence(self, did, packet):
-        # TODO Oct 27: confirm challenge body schema (documents = uploaded file ids).
-        return self._write(f"/pa/payment_disputes/{did}/challenge", {"narrative": packet["narrative"]})
+    def get_dispute(self, did):
+        return self._to_internal(self._req("GET", f"/pa/payment_disputes/{did}"))
 
-    def accept_dispute(self, did): return self._write(f"/pa/payment_disputes/{did}/accept", {})
+    def submit_evidence(self, did, packet, dispute=None):
+        """POST /pa/payment_disputes/{id}/challenge. `dispute` (internal dict) is fetched only when needed for a live send."""
+        if dispute is None:
+            dispute = {"id": did, "reason": "unknown", "raw": {}} if self.dry_run else self.get_dispute(did)
+        return self._write(f"/pa/payment_disputes/{did}/challenge", build_challenge_body(dispute, packet))
+
+    def accept_dispute(self, did, reason="OTHERS", description=None):
+        if reason not in ACCEPT_REASONS:
+            raise ValueError(f"accept reason must be one of {sorted(ACCEPT_REASONS)}")
+        body = {"request_id": str(uuid.uuid4()), "reason": reason}
+        if description: body["description"] = description
+        return self._write(f"/pa/payment_disputes/{did}/accept", body)
+
+# Enums from airwallex.com/docs/api/payments/payment_disputes (challenge / accept).
+CHALLENGE_REASONS = {"CUSTOMER_WITHDRAWN", "CUSTOMER_REFUNDED", "PRODUCT_RECEIVED", "PURCHASE_HISTORY",
+                     "NOT_ENTITLED", "SEPARATE_PRODUCT", "AUTHENTIC_PRODUCT", "OTHER_REASONS"}
+PRODUCT_TYPES = {"PHYSICAL_GOODS", "DIGITAL_PRODUCT_OR_SERVICE", "OFFLINE_SERVICE", "TRAVEL", "RESERVE_OR_BOOKING", "OTHERS"}
+DOCUMENT_TYPES = {"PRIMARY", "ORDER", "CUSTOMER", "OTHER"}
+ACCEPT_REASONS = {"AGREEMENT_REACHED_WITH_CUSTOMER", "CUSTOMER_RELATIONSHIP_MAINTENANCE", "LOW_VALUE_TRANSACTION",
+                  "VALID_CUSTOMER_DISPUTE", "COLLABORATION_ACCEPTED_MANUAL", "OTHERS"}
+
+# Internal / card-network reason names -> canonical key used below.
+_REASON_ALIASES = {"FRAUD": "FRAUDULENT", "NOT_RECEIVED": "PRODUCT_NOT_RECEIVED", "DUPLICATE": "DUPLICATE_CHARGE",
+                   "NOT_AS_DESCRIBED": "PRODUCT_UNACCEPTABLE", "SUBSCRIPTION_CANCELLED": "SUBSCRIPTION_CANCELED"}
+
+def _canon_reason(r):
+    r = str(getattr(r, "value", r) or "").strip().upper().replace(" ", "_").replace("-", "_")
+    return _REASON_ALIASES.get(r, r)
+
+def _challenge_reason(reason, refunded, prior_orders):
+    if reason == "PRODUCT_NOT_RECEIVED": return "PRODUCT_RECEIVED"
+    if reason in ("CREDIT_NOT_PROCESSED", "SUBSCRIPTION_CANCELED"): return "CUSTOMER_REFUNDED" if refunded else "NOT_ENTITLED"
+    if reason == "DUPLICATE_CHARGE": return "CUSTOMER_REFUNDED" if refunded else "SEPARATE_PRODUCT"
+    if reason == "FRAUDULENT" and prior_orders: return "PURCHASE_HISTORY"
+    return "OTHER_REASONS"
+
+def build_challenge_body(dispute, packet):
+    """Pure: map internal dispute + packet {narrative, evidence, [file_ids, product_type, ...]} to the /challenge body.
+
+    Only fields we actually hold are sent; nothing is invented. Free text goes in
+    supporting_documents.documents[].description (the API has no `narrative` field).
+    """
+    ev = packet.get("evidence") or {}
+    pay, ship, cust = ev.get("payment") or {}, ev.get("shipment"), ev.get("customer") or {}
+    raw = dispute.get("raw") or {}
+    reason = _canon_reason(dispute.get("reason"))
+    refunded = bool(pay.get("refunded"))
+    narrative = packet.get("narrative") or ""
+
+    product_type = packet.get("product_type") or (
+        "PHYSICAL_GOODS" if ship or reason == "PRODUCT_NOT_RECEIVED"
+        else "DIGITAL_PRODUCT_OR_SERVICE" if reason == "SUBSCRIPTION_CANCELED" else "OTHERS")
+    if product_type not in PRODUCT_TYPES:
+        raise ValueError(f"product_type must be one of {sorted(PRODUCT_TYPES)}")
+
+    file_ids = list(packet.get("file_ids") or [])
+    if not file_ids:
+        log.warning("challenge for %s has no File Service file_ids; live submission may be rejected", dispute.get("id"))
+    body = {"request_id": str(uuid.uuid4()), "challenge_method": "STANDARD",
+            "reason": _challenge_reason(reason, refunded, cust.get("prior_orders")),
+            "product_type": product_type,
+            "supporting_documents": {"documents": [{"type": "PRIMARY", "file_ids": file_ids, "description": narrative}]}}
+    if packet.get("product_description"): body["product_description"] = packet["product_description"]
+
+    if ship:
+        di = {"tracking_number": ship.get("tracking"), "shipping_company": ship.get("carrier"),
+              "shipped_at": ship.get("shipped_at"), "delivered_at": ship.get("delivered_at")}
+        di = {k: v for k, v in di.items() if v}
+        if di: body["delivery_info"] = di
+    if reason == "DUPLICATE_CHARGE":
+        dup = {"explanation": narrative}
+        if packet.get("duplicate_payment_id"): dup["payment_id"] = packet["duplicate_payment_id"]
+        body["duplicate_charge_info"] = dup
+    if str(raw.get("stage", "")).upper() == "CHARGEBACK":
+        body["refund_refusal_reason"] = packet.get("refund_refusal_reason") or narrative
+        if packet.get("customer_info"): body["customer_info"] = packet["customer_info"]
+    return body
 
 def get_api():
     if os.environ.get("AIRWALLEX_MODE", "mock") == "sandbox":
