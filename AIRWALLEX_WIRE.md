@@ -1,6 +1,6 @@
 # Airwallex wire-up — Oct 27 morning (no coding needed)
 
-Nothing here has called a live Airwallex API. Default mode is `mock`; tests (54) stay green offline.
+Nothing here has called a live Airwallex API. Default mode is `mock`; tests (60) stay green offline.
 
 ## 1. Clicks (Arthi, ~10 min)
 1. Join hackathon via the HackerEarth page and use the sandbox sign-up link it gives (or "Get sandbox account" from
@@ -27,6 +27,7 @@ Needs an existing PaymentIntent id. Ask the agent (Grok Bot) to do this step wit
 | AIRWALLEX_BASE_URL | default `https://api-demo.airwallex.com/api/v1` (docs also show `https://api.sandbox.airwallex.com/api/v1`; try the other if login 404s) |
 | AIRWALLEX_FILES_BASE_URL | default `https://files.sandbox.airwallex.com/api/v1` (File Service host from the upload docs; production is `files.airwallex.com`) |
 | AIRWALLEX_DRY_RUN | `1` default: accept/challenge not sent. `0` to really send (sandbox only) |
+| EVIDENCE_DIR | per-dispute evidence documents, default `data/evidence` (`<dir>/<dispute_id>/*` attached on challenge) |
 | AUTO_SUBMIT_LIMIT | human-approval threshold, default 500 |
 | WEBHOOK_SECRET | for `counsel.webhook` |
 
@@ -35,7 +36,7 @@ Needs an existing PaymentIntent id. Ask the agent (Grok Bot) to do this step wit
   - `_to_internal()`: map real dispute fields (verify `reason`, `status`, `due_at` names on first response).
   - `get_payment()`: AVS/CVC/3DS + fraud_data mapped from `latest_payment_attempt.authentication_data` per Payment Attempt docs (Oct 27).
   - `submit_evidence()` / `accept_dispute()`: bodies built per the challenge/accept API reference (`build_challenge_body()`: uuid4 `request_id`, enum-checked `reason`/`product_type`, narrative in `supporting_documents.documents[].description`). Not yet exercised against a live sandbox.
-  - `upload_file(path, notes=None)`: `POST /api/v1/files/upload` on the File Service host (multipart `file`, optional `notes`; response `file_id`), per https://www.airwallex.com/docs/api/supporting_services/file_service/upload_files. Enforces the documented limits (20MB, filename/notes 50 chars). `submit_evidence()` uploads each path in `packet["evidence_files"]` and appends the ids to `supporting_documents.documents[0].file_ids`. Under `AIRWALLEX_DRY_RUN=1` nothing is uploaded and ids are `dry_run:<filename>`. Tested only against a fake transport; not yet exercised against a live sandbox. The agent does not yet put any files in `evidence_files`, so challenges from `agent.py` still go out with empty `file_ids` (a warning is logged).
+  - `upload_file(path, notes=None)`: `POST /api/v1/files/upload` on the File Service host (multipart `file`, optional `notes`; response `file_id`), per https://www.airwallex.com/docs/api/supporting_services/file_service/upload_files. Enforces the documented limits (20MB, filename/notes 50 chars). `submit_evidence()` uploads each path in `packet["evidence_files"]` and appends the ids to `supporting_documents.documents[0].file_ids`. Under `AIRWALLEX_DRY_RUN=1` nothing is uploaded and ids are `dry_run:<filename>`. Tested only against a fake transport; not yet exercised against a live sandbox. `agent.py` fills `evidence_files` from `data/evidence/<dispute_id>/` (override with `EVIDENCE_DIR`) when it decides to challenge; files are uploaded only inside `submit_evidence()`, i.e. after the approval gate. Accepts send no files.
 - `disputeagent/agent.py`: `api = get_api()` — only switch line.
 - `counsel/webhook.py`: headers/signature verified against Airwallex docs (Oct 27); test events via `WEBHOOK_ALLOW_TEST_EVENTS=1` (client-secret-key). `to_dispute()` field names still mock.
 - Endpoints: `POST /authentication/login`, `GET /pa/payment_disputes`, `GET /pa/payment_intents/{id}`,

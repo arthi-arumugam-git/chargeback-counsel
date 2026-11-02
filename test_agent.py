@@ -4,3 +4,4 @@ def test_loop():
     assert log["dsp_002"]["action"].startswith("accept")
     assert log["dsp_001"]["action"]=="evidence submitted"
     assert "dsp_003" in api.SUBMITTED
+    assert api.SUBMITTED["dsp_001"]["file_ids"] and api.SUBMITTED["dsp_003"]["file_ids"]

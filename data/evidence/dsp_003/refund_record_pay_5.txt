@@ -1,0 +1,4 @@
+Refund record
+Payment: pay_5 (order ord_5)
+Amount: 15.00 USD
+Status: refunded in full before the dispute was raised
