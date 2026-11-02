@@ -131,3 +131,43 @@ def test_sandbox_dry_run_submit_does_not_fetch(monkeypatch):
     with pytest.raises(ValueError):
         c.accept_dispute("dst_1", reason="BECAUSE")
     assert c.accept_dispute("dst_1", reason="LOW_VALUE_TRANSACTION")["body"]["reason"] in ACCEPT_REASONS
+
+def test_upload_file_multipart_and_wired_into_challenge(monkeypatch, tmp_path):
+    monkeypatch.setenv("AIRWALLEX_DRY_RUN", "0")
+    f = tmp_path / "receipt.pdf"; f.write_bytes(b"%PDF-1.4 signed")
+    calls = []
+    def t(method, url, headers, body):
+        calls.append((method, url, headers, body))
+        if url.endswith("/authentication/login"): return {"token": "tok"}
+        if url.endswith("/files/upload"): return {"file_id": "file_abc", "filename": "receipt.pdf", "size": 15}
+        if url.endswith("/payment_disputes/dst_1"): return {"id": "dst_1", "reason": {"type": "FRAUDULENT"}}
+        return {"ok": True}
+    c = SandboxClient("id", "key", base="https://x", files_base="https://files.x/api/v1", transport=t)
+    c.submit_evidence("dst_1", {**_pkt(), "file_ids": ["file_old"], "evidence_files": [str(f)]})
+    _, url, headers, body = next(x for x in calls if x[1].endswith("/files/upload"))
+    assert url == "https://files.x/api/v1/files/upload" and headers["Authorization"] == "Bearer tok"
+    assert headers["Content-Type"].startswith("multipart/form-data; boundary=")
+    assert b'name="file"; filename="receipt.pdf"' in body and b"%PDF-1.4 signed" in body
+    challenge = calls[-1][3]
+    assert calls[-1][1].endswith("/challenge")
+    assert challenge["supporting_documents"]["documents"][0]["file_ids"] == ["file_old", "file_abc"]
+
+def test_upload_file_limits_and_dry_run(monkeypatch, tmp_path):
+    import pytest
+    monkeypatch.delenv("AIRWALLEX_DRY_RUN", raising=False)
+    calls = []
+    c = SandboxClient("id", "key", base="https://x", transport=fake(calls))
+    long = tmp_path / ("x" * 51); long.write_bytes(b"a")
+    with pytest.raises(ValueError): c.upload_file(str(long))
+    ok = tmp_path / "a.png"; ok.write_bytes(b"a")
+    with pytest.raises(ValueError): c.upload_file(str(ok), notes="n" * 51)
+    r = c.submit_evidence("dst_1", {**_pkt(), "evidence_files": [str(ok)]})
+    assert calls == [] and r["body"]["supporting_documents"]["documents"][0]["file_ids"] == ["dry_run:a.png"]
+
+def test_mock_upload_and_submit(tmp_path):
+    f = tmp_path / "pod.jpg"; f.write_bytes(b"x")
+    mock_airwallex.DISPUTES.setdefault("dsp_up", {"id": "dsp_up", "status": "needs_response"})
+    mock_airwallex.submit_evidence("dsp_up", {**_pkt(), "evidence_files": [str(f)]})
+    fid = mock_airwallex.SUBMITTED["dsp_up"]["file_ids"][0]
+    assert mock_airwallex.UPLOADED[fid] == str(f)
+    mock_airwallex.DISPUTES.pop("dsp_up"); mock_airwallex.SUBMITTED.pop("dsp_up")

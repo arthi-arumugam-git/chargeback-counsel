@@ -11,20 +11,25 @@ import json, logging, os, time, urllib.request, uuid
 log = logging.getLogger(__name__)
 
 BASE = os.environ.get("AIRWALLEX_BASE_URL", "https://api-demo.airwallex.com/api/v1")
+# File Service lives on its own subdomain (files.airwallex.com in production).
+# https://www.airwallex.com/docs/api/supporting_services/file_service/upload_files
+FILES_BASE = os.environ.get("AIRWALLEX_FILES_BASE_URL", "https://files.sandbox.airwallex.com/api/v1")
+MAX_FILE_BYTES, MAX_NAME_LEN = 20 * 1024 * 1024, 50  # documented limits (filename and notes: 50 chars each)
 
 class SandboxClient:
-    def __init__(self, client_id=None, api_key=None, base=BASE, transport=None):
+    def __init__(self, client_id=None, api_key=None, base=BASE, transport=None, files_base=FILES_BASE):
         self.client_id = client_id or os.environ.get("AIRWALLEX_CLIENT_ID")
         self.api_key = api_key or os.environ.get("AIRWALLEX_API_KEY")
         if not (self.client_id and self.api_key):
             raise RuntimeError("Set AIRWALLEX_CLIENT_ID and AIRWALLEX_API_KEY")
         self.base, self._t = base.rstrip("/"), transport or self._http
+        self.files_base = files_base.rstrip("/")
         self._token, self._exp = None, 0
         self.dry_run = os.environ.get("AIRWALLEX_DRY_RUN", "1") == "1"  # writes are logged, not sent, unless 0
 
     def _http(self, method, url, headers, body):
-        req = urllib.request.Request(url, method=method, headers=headers,
-                                     data=json.dumps(body).encode() if body is not None else None)
+        data = body if isinstance(body, bytes) else json.dumps(body).encode() if body is not None else None
+        req = urllib.request.Request(url, method=method, headers=headers, data=data)
         with urllib.request.urlopen(req, timeout=20) as r:
             return json.loads(r.read() or b"{}")
 
@@ -77,8 +82,29 @@ class SandboxClient:
     def get_dispute(self, did):
         return self._to_internal(self._req("GET", f"/pa/payment_disputes/{did}"))
 
+    def upload_file(self, path, notes=None):
+        """POST {files_base}/files/upload (multipart: `file`, optional `notes`) -> file_id. Dry run returns a placeholder id."""
+        name = os.path.basename(path)
+        if len(name) > MAX_NAME_LEN: raise ValueError(f"filename over {MAX_NAME_LEN} chars: {name}")
+        if notes and len(notes) > MAX_NAME_LEN: raise ValueError(f"notes over {MAX_NAME_LEN} chars")
+        with open(path, "rb") as f: content = f.read()
+        if len(content) > MAX_FILE_BYTES: raise ValueError(f"{name} exceeds 20MB upload limit")
+        if self.dry_run:
+            print(json.dumps({"DRY_RUN": "/files/upload", "file": name, "size": len(content)})); return f"dry_run:{name}"
+        boundary = uuid.uuid4().hex
+        parts = [(f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{name}"\r\n'
+                  "Content-Type: application/octet-stream\r\n\r\n").encode() + content + b"\r\n"]
+        if notes:
+            parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="notes"\r\n\r\n{notes}\r\n'.encode())
+        body = b"".join(parts) + f"--{boundary}--\r\n".encode()
+        headers = {**self._auth(), "Content-Type": f"multipart/form-data; boundary={boundary}"}
+        return self._t("POST", f"{self.files_base}/files/upload", headers, body)["file_id"]
+
     def submit_evidence(self, did, packet, dispute=None):
-        """POST /pa/payment_disputes/{id}/challenge. `dispute` (internal dict) is fetched only when needed for a live send."""
+        """POST /pa/payment_disputes/{id}/challenge. Paths in packet["evidence_files"] are uploaded first and their
+        file_ids appended to packet["file_ids"]. `dispute` (internal dict) is fetched only when needed for a live send."""
+        if packet.get("evidence_files"):
+            packet = {**packet, "file_ids": list(packet.get("file_ids") or []) + [self.upload_file(p) for p in packet["evidence_files"]]}
         if dispute is None:
             dispute = {"id": did, "reason": "unknown", "raw": {}} if self.dry_run else self.get_dispute(did)
         return self._write(f"/pa/payment_disputes/{did}/challenge", build_challenge_body(dispute, packet))
@@ -115,6 +141,7 @@ def _challenge_reason(reason, refunded, prior_orders):
 
 def build_challenge_body(dispute, packet):
     """Pure: map internal dispute + packet {narrative, evidence, [file_ids, product_type, ...]} to the /challenge body.
+    file_ids are File Service ids (SandboxClient.submit_evidence fills them from packet["evidence_files"]).
 
     Only fields we actually hold are sent; nothing is invented. Free text goes in
     supporting_documents.documents[].description (the API has no `narrative` field).

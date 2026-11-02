@@ -13,9 +13,16 @@ SHIPMENTS = {"ord_9":{"carrier":"DHL","tracking":"DHL123","status":"delivered","
              "ord_7":{"carrier":"UPS","tracking":"1Z77","status":"delivered","signed_by":None}}
 CUSTOMERS = {"cus_a":{"prior_orders":12,"ip_country":"US"},"cus_b":{"prior_orders":0,"ip_country":"RO"},"cus_c":{"prior_orders":3,"ip_country":"SG"}}
 SUBMITTED = {}
+UPLOADED = {}  # file_id -> path
+def upload_file(path, notes=None):
+    open(path, "rb").close()  # fail like the real client on a missing file
+    fid = f"file_mock_{len(UPLOADED)+1}"; UPLOADED[fid] = path; return fid
 def list_disputes(): return [d for d in DISPUTES.values() if d["status"]=="needs_response"]
 def get_payment(pid): return PAYMENTS[pid]
 def get_shipment(oid): return SHIPMENTS.get(oid)
 def get_customer(cid): return CUSTOMERS[cid]
-def submit_evidence(did, packet): SUBMITTED[did]=packet; DISPUTES[did]["status"]="evidence_submitted"; return {"ok":True}
+def submit_evidence(did, packet):
+    if isinstance(packet, dict) and packet.get("evidence_files"):
+        packet = {**packet, "file_ids": list(packet.get("file_ids") or []) + [upload_file(p) for p in packet["evidence_files"]]}
+    SUBMITTED[did]=packet; DISPUTES[did]["status"]="evidence_submitted"; return {"ok":True}
 def accept_dispute(did): DISPUTES[did]["status"]="accepted"; return {"ok":True}
